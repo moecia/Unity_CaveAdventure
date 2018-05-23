@@ -550,7 +550,6 @@ GameObject:
   - component: {fileID: 195639476260444826}
   - component: {fileID: 114510049716197124}
   - component: {fileID: 114808996779823568}
-  - component: {fileID: 114941609619576762}
   m_Layer: 0
   m_Name: Character_Samurai_Warrior_Brown
   m_TagString: Untagged
@@ -3435,25 +3434,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
---- !u!114 &114941609619576762
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 155278}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ce7a80d520cacc042b5fe14f373d8173, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_MovingTurnSpeed: 360
-  m_StationaryTurnSpeed: 180
-  m_JumpPower: 6
-  m_GravityMultiplier: 2
-  m_RunCycleLegOffset: 0.2
-  m_MoveSpeedMultiplier: 1
-  m_AnimSpeedMultiplier: 1
-  m_GroundCheckDistance: 0.2
 --- !u!136 &136700737958813326
 CapsuleCollider:
   m_ObjectHideFlags: 1
