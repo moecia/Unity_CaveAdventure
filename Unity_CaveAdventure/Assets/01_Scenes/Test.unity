@@ -915,7 +915,7 @@ MonoBehaviour:
   height: 36
   seed: Nathan
   useRandomSeed: 1
-  randomFillPercent: 50
+  randomFillPercent: 48
   smoothness: 1
 --- !u!114 &1442758312
 MonoBehaviour:
