@@ -40,7 +40,8 @@ public class MapGenerator : MonoBehaviour
         ProcessMap();
         int borderSize = 5;
         int[,] borderedMap = new int[width + borderSize * 2, height + borderSize * 2];
-
+        
+        // Setup border
         for (int x = 0; x < borderedMap.GetLength(0); x++)
         {
             for (int y = 0; y < borderedMap.GetLength(1); y++)
@@ -54,6 +55,47 @@ public class MapGenerator : MonoBehaviour
 
         MeshGenerator m_meshGenerator = GetComponent<MeshGenerator>();
         m_meshGenerator.GenerateMesh(borderedMap, 1);
+    }
+
+    void ProcessMap()
+    {
+        List<List<Coord>> wallRegions = GetRegions(1);
+        int wallThresholdSize = 50;
+
+        foreach (List<Coord> wallRegion in wallRegions)
+        {
+            if (wallRegion.Count < wallThresholdSize)
+            {
+                foreach (Coord tile in wallRegion)
+                {
+                    map[tile.tileX, tile.tileY] = 0;
+                }
+            }
+        }
+
+        List<List<Coord>> roomRegions = GetRegions(0);
+        int roomThresholdSize = 50;
+        List<Room> survivingRooms = new List<Room>();
+
+        foreach (List<Coord> roomRegion in roomRegions)
+        {
+            if (roomRegion.Count < roomThresholdSize)
+            {
+                foreach (Coord tile in roomRegion)
+                {
+                    map[tile.tileX, tile.tileY] = 1;
+                }
+            }
+            else
+            {
+                survivingRooms.Add(new Room(roomRegion, map));
+            }
+        }
+        survivingRooms.Sort();
+        survivingRooms[0].isMainRoom = true;
+        survivingRooms[0].isAccessibleFromMainRoom = true;
+
+        ConnectClosestRooms(survivingRooms);
     }
 
     void RandomFillMap()
@@ -129,62 +171,21 @@ public class MapGenerator : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        //    if (map != null)
+        //if (map != null)
+        //{
+        //    for (int x = 0; x < width; x++)
         //    {
-        //        for (int x = 0; x < width; x++)
+        //        for (int y = 0; y < height; y++)
         //        {
-        //            for (int y = 0; y < height; y++)
-        //            {
-        //                Gizmos.color = (map[x, y] == 1) ? Color.black : Color.white;
-        //                Vector3 pos = new Vector3(-width / 2 + x + .5f, 0, -height / 2 + y + .5f);
-        //                Gizmos.DrawCube(pos, Vector3.one);
-        //            }
+        //            Gizmos.color = (map[x, y] == 1) ? Color.black : Color.white;
+        //            Vector3 pos = new Vector3(-width / 2 + x + .5f, 0, -height / 2 + y + .5f);
+        //            Gizmos.DrawCube(pos, Vector3.one);
         //        }
         //    }
+        //}
     }
 
     #region Clean The Separated Walls
-
-    void ProcessMap()
-    {
-        List<List<Coord>> wallRegions = GetRegions(1);
-        int wallThresholdSize = 50;
-
-        foreach (List<Coord> wallRegion in wallRegions)
-        {
-            if (wallRegion.Count < wallThresholdSize)
-            {
-                foreach (Coord tile in wallRegion)
-                {
-                    map[tile.tileX, tile.tileY] = 0;
-                }
-            }
-        }
-
-        List<List<Coord>> roomRegions = GetRegions(0);
-        int roomThresholdSize = 50;
-        List<Room> survivingRooms = new List<Room>();
-
-        foreach (List<Coord> roomRegion in roomRegions)
-        {
-            if (roomRegion.Count < roomThresholdSize)
-            {
-                foreach (Coord tile in roomRegion)
-                {
-                    map[tile.tileX, tile.tileY] = 1;
-                }
-            }
-            else
-            {
-                survivingRooms.Add(new Room(roomRegion, map));
-            }
-        }
-        survivingRooms.Sort();
-        survivingRooms[0].isMainRoom = true;
-        survivingRooms[0].isAccessibleFromMainRoom = true;
-
-        ConnectClosestRooms(survivingRooms);
-    }
 
     struct Coord
     {
