@@ -5,7 +5,6 @@ using System;
 
 public class MapGenerator : MonoBehaviour
 {
-
     public int width;
     public int height;
 
@@ -19,6 +18,11 @@ public class MapGenerator : MonoBehaviour
 
     int[,] map;
 
+    public int borderSize = 0;
+
+    public GameObject start;
+    public GameObject end;
+
     private void Start()
     {
         GenerateMap();
@@ -26,9 +30,9 @@ public class MapGenerator : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetKeyDown(KeyCode.G))
         {
-            GenerateMap();
+            Application.LoadLevel(0);
         }
     }
 
@@ -38,7 +42,6 @@ public class MapGenerator : MonoBehaviour
         RandomFillMap();
         SmoothMap(smoothness);
         ProcessMap();
-        int borderSize = 5;
         int[,] borderedMap = new int[width + borderSize * 2, height + borderSize * 2];
         
         // Setup border
@@ -95,6 +98,8 @@ public class MapGenerator : MonoBehaviour
         survivingRooms[0].isMainRoom = true;
         survivingRooms[0].isAccessibleFromMainRoom = true;
 
+        FindStartRoom(survivingRooms);
+        FindEndRoom(survivingRooms);
         ConnectClosestRooms(survivingRooms);
     }
 
@@ -102,7 +107,7 @@ public class MapGenerator : MonoBehaviour
     {
         if (useRandomSeed)
         {
-            seed = Time.time.ToString();
+            seed = Time.realtimeSinceStartup.ToString();
         }
 
         System.Random prng = new System.Random(seed.GetHashCode());
@@ -459,6 +464,7 @@ public class MapGenerator : MonoBehaviour
         public int roomSize;
         public bool isAccessibleFromMainRoom;
         public bool isMainRoom;
+        public Coord roomCentre;
 
         public Room()
         {
@@ -471,6 +477,7 @@ public class MapGenerator : MonoBehaviour
             connectedRooms = new List<Room>();
 
             edgeTiles = new List<Coord>();
+
             foreach (Coord tile in tiles)
             {
                 for (int x = tile.tileX - 1; x <= tile.tileX + 1; x++)
@@ -487,6 +494,25 @@ public class MapGenerator : MonoBehaviour
                     }
                 }
             }
+
+            int leftMost = int.MaxValue;
+            int rightMost = int.MinValue;
+            int downMost = int.MaxValue;
+            int upMost = int.MinValue;
+
+            foreach(Coord tile in tiles)
+            {
+                if (tile.tileX < leftMost)
+                    leftMost = tile.tileX;
+                if (tile.tileX > rightMost)
+                    rightMost = tile.tileX;
+                if (tile.tileY < downMost)
+                    downMost = tile.tileY;
+                if (tile.tileY > upMost)
+                    upMost = tile.tileY;
+            }
+            roomCentre.tileX = (rightMost + leftMost) / 2;
+            roomCentre.tileY = (upMost + downMost) / 2;
         }
 
         public void SetAccessibleFromMainRoom()
@@ -524,8 +550,66 @@ public class MapGenerator : MonoBehaviour
         {
             return otherRoom.roomSize.CompareTo(roomSize);
         }
+
     }
 
     #endregion
+
+    Room FindStartRoom(List<Room> allRooms)
+    {
+        int leftMost = int.MaxValue;
+        float maxSize = float.MinValue;
+        float requiredSize = 10.0f;
+        Room startRoom = new Room();
+
+        foreach (Room room in allRooms)
+        {
+            if (room.roomCentre.tileX < leftMost)
+            {
+                startRoom = room;
+                leftMost = room.roomCentre.tileX;   
+            }
+        }
+
+        float scaleX = 0.95f;
+        float scaleY = 1.05f;
+
+        Instantiate(start,
+            new Vector3(CoordToWorldPoint(startRoom.roomCentre).x * scaleX, -4.5f, CoordToWorldPoint(startRoom.roomCentre).z * scaleY),
+            Quaternion.identity);
+
+
+        print("Start room coord: " + startRoom.roomCentre.tileX + "," + startRoom.roomCentre.tileY);
+        return startRoom;
+    }
+
+    Room FindEndRoom(List<Room> allRooms)
+    {
+        int rightMost = int.MinValue;
+        float maxSize = float.MinValue;
+        float requiredSize = 10.0f;
+        Room endRoom = new Room();
+
+        foreach (Room room in allRooms)
+        {
+            if (room.roomCentre.tileX > rightMost)
+            {
+                endRoom = room;
+                rightMost = room.roomCentre.tileX;
+            }
+        }
+
+        float scaleX = 0.95f;
+        float scaleY = 1.05f;
+
+        Instantiate(end,
+            new Vector3(CoordToWorldPoint(endRoom.roomCentre).x * scaleX, -4.5f, CoordToWorldPoint(endRoom.roomCentre).z * scaleY),
+            Quaternion.Euler(-90, 0, 0));
+
+
+        print("End room coord: " + endRoom.roomCentre.tileX + "," + endRoom.roomCentre.tileY);
+        return endRoom;
+    }
+
 }
 
